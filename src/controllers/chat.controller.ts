@@ -49,7 +49,10 @@ export async function createChatMessage(
       `data: ${JSON.stringify({
         type: "done",
         chatId: result.chatId,
-        message: result.message,
+        messageId: result.message.messageId,
+        role: result.message.role,
+        content: result.message.content,
+        createdAt: result.message.createdAt,
       })}\n\n`
     );
 
