@@ -11,3 +11,43 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  userId    String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  chats     Chat[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}
+
+model Chat {
+  chatId    String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  title     String
+  message   Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([updatedAt])
+}
+
+model Message {
+  messageId String      @id @default(uuid())
+  chatId    String
+  chat      Chat        @relation(fields: [chatId], references: [chatId], onDelete: Cascade)
+  role      MessageRole
+  content   String
+  createdAt DateTime    @default(now())
+
+  @@index([chatId, createdAt])
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+}
