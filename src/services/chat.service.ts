@@ -1,5 +1,5 @@
 import prisma from "../lib/prisma";
-import { generateResponse } from "./ollama.service";
+import { streamResponse } from "./ollama.service";
 
 const SYSTEM_PROMPT = `
 You are the AI assistant for the Godrej Warehouse Intelligence application.
@@ -90,12 +90,14 @@ interface SendMessageInput {
   userId: string;
   chatId?: string;
   message: string;
+  onChunk?: (content: string) => void;
 }
 
 export async function sendMessage({
   userId,
   chatId,
   message,
+  onChunk,
 }: SendMessageInput) {
   let chat;
 
@@ -149,7 +151,7 @@ export async function sendMessage({
       role: "system" as const,
       content: SYSTEM_PROMPT,
     },
-    ...previousMessages.map((msg: typeof previousMessages[0]) => ({
+    ...previousMessages.map((msg) => ({
       role:
         msg.role === "USER"
           ? ("user" as const)
@@ -158,10 +160,13 @@ export async function sendMessage({
     })),
   ];
 
-  const assistantResponse = await generateResponse(
-    ollamaMessages
+  // Stream response from Ollama
+  const assistantResponse = await streamResponse(
+    ollamaMessages,
+    onChunk
   );
 
+  // Save complete response after streaming finishes
   const assistantMessage = await prisma.message.create({
     data: {
       chatId: chat.chatId,
