@@ -283,6 +283,29 @@ export async function getRecentChatsService(
   return chats;
 }
 
+export async function searchChatServices(
+  userId:string,
+  query:string,
+) {
+  return prisma.chat.findMany({
+    where:{
+      userId,
+      title:{
+        contains:query,
+        mode:"insensitive",
+      }
+    },
+    orderBy:{
+      updatedAt:"desc",
+    },
+    select: {
+      chatId: true,
+      title: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  })
+}
 interface DeleteChatInput {
   userId: string;
   chatId: string;

@@ -1,5 +1,5 @@
 import { Request,Response } from "express";
-import { sendMessage,getMessage,getRecentChatsService,deleteChatService } from "../services/chat.service";
+import { sendMessage,getMessage,getRecentChatsService, searchChatServices,deleteChatService } from "../services/chat.service";
 
 export async function createChatMessage(
   req: Request,
@@ -187,6 +187,55 @@ export async function getRecentChats(
     }
 }
 
+export async function searchChat(
+  req: Request,
+  res: Response
+) {
+  try {
+    const { userId, q } = req.query;
+
+    if (!userId || typeof userId !== "string") {
+      return res.status(400).json({
+        error: "userId is required",
+        status: 0,
+      });
+    }
+
+    if (!q || typeof q !== "string") {
+      return res.status(400).json({
+        error: "search query is required",
+        status: 0,
+      });
+    }
+
+    const query = q.trim();
+
+    if (!query) {
+      return res.status(400).json({
+        error: "search query cannot be empty",
+        status: 0,
+      });
+    }
+
+    const chats = await searchChatServices(
+      userId,
+      query
+    );
+
+    return res.status(200).json({
+      chats,
+      status: 1,
+    });
+
+  } catch (err) {
+    console.error("Error searching chats:", err);
+
+    return res.status(500).json({
+      message: "Internal Server Error",
+      status: 0,
+    });
+  }
+}
 
 export async function deleteChat(
     req: Request,
