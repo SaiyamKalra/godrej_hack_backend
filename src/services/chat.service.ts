@@ -1,5 +1,5 @@
 import prisma from "../lib/prisma";
-import { streamResponse } from "./ollama.service";
+import { generateChatTitle, streamResponse } from "./ollama.service";
 
 const SYSTEM_PROMPT = `
 You are the AI assistant for the Godrej Warehouse Intelligence application.
@@ -113,10 +113,11 @@ export async function sendMessage({
       throw new Error("Chat not found");
     }
   } else {
+    const initialTitle=await generateChatTitle(message);
     chat = await prisma.chat.create({
       data: {
         userId,
-        title: message.substring(0, 100),
+        title: initialTitle,
       },
     });
   }

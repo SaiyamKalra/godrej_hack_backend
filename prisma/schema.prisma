@@ -13,8 +13,9 @@ datasource db {
 }
 
 model User {
-  userId    String   @id @default(uuid())
+  userId    String   @id
   email     String   @unique
+  password  String
   name      String
   chats     Chat[]
   createdAt DateTime @default(now())

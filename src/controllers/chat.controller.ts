@@ -6,7 +6,8 @@ export async function createChatMessage(
   res: Response
 ) {
   try {
-    const { userId, chatId, message } = req.body;
+    const userId=req.user!.uid;
+    const { chatId, message } = req.body;
 
     if (!userId || typeof userId !== "string") {
       return res.status(400).json({
@@ -92,7 +93,8 @@ export async function createChatMessage(
 export async function getChatMessage(req:Request,res:Response){
     try{
         const chatId=req.params.chatId;
-        const {userId,cursor,limit}=req.query;
+        const userId=req.user!.uid;
+        const {cursor,limit}=req.query;
 
         if (typeof chatId !== "string") {
             return res.status(400).json({
@@ -152,7 +154,7 @@ export async function getRecentChats(
 ) {
     try {
 
-        const userId = req.params.userId;
+        const userId = req.user!.uid;
 
 
         if (typeof userId !== "string") {
@@ -192,7 +194,8 @@ export async function searchChat(
   res: Response
 ) {
   try {
-    const { userId, q } = req.query;
+    const userId=req.user!.uid;
+    const { q } = req.query;
 
     if (!userId || typeof userId !== "string") {
       return res.status(400).json({
@@ -253,10 +256,7 @@ export async function deleteChat(
             });
         }
 
-
-        const {
-            userId,
-        } = req.body;
+        const userId = req.user!.uid;
 
 
         if (!userId || typeof userId !== "string") {
