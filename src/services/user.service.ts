@@ -1,4 +1,4 @@
-import prisma from "../lib/prisma";
+import prisma from "../db/prisma";
 
 export async function syncFirebaseUser(
   userId: string,

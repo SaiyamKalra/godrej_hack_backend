@@ -7,7 +7,7 @@ import {
 
 import {
   databaseToolDefinition,
-} from "../tools/databaseDefinition.tool";
+} from "../tools/database.definition";
 
 const OLLAMA_MODEL =
   process.env.OLLAMA_MODEL || "llama3.2:latest";

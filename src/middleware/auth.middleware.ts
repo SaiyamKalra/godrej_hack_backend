@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { firebaseAuth } from "../lib/firebase";
+import { firebaseAuth } from "../config/firebase";
 
 export async function authenticate(
   req: Request,

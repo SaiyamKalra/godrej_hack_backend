@@ -1,4 +1,4 @@
-import prisma from "../lib/prisma";
+import prisma from "../db/prisma";
 import { generateChatTitle} from "./ollama.service";
 import { runOllamaAgent } from "./ollama-agent.service";
 
