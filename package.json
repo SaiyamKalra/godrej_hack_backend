@@ -29,6 +29,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "firebase-admin": "^14.3.0",
+    "ollama": "^0.6.3",
     "pg": "^8.23.0"
   },
   "allowScripts": {
