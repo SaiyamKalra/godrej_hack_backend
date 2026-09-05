@@ -1,4 +1,7 @@
-import ollama from "ollama";
+import { Ollama } from "ollama";
+
+const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://localhost:11434";
+const ollama = new Ollama({ host: OLLAMA_BASE_URL });
 
 import {
   databaseTool,

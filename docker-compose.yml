@@ -11,7 +11,7 @@ services:
       PORT: 8080
       DATABASE_URL: postgresql://app:password@postgres:5432/myapp
       OLLAMA_BASE_URL: http://ollama:11434
-      OLLAMA_MODEL: qwen3:8b
+      OLLAMA_MODEL: ${OLLAMA_MODEL}
 
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
       FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL}
@@ -34,13 +34,25 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms256m -Xmx256m
+    mem_limit: 512m
 
   ollama:
     image: ollama/ollama
-
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_MODELS=/root/.ollama/models
+      - OLLAMA_KEEP_ALIVE=-1
     volumes:
-      - ollama_data:/root/.ollama
+      - ${OLLAMA_VOLUME_PATH}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
 volumes:
   postgres_data:
-  ollama_data:
