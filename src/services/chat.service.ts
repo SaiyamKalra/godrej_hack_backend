@@ -1,6 +1,6 @@
-import prisma from "../db/prisma";
-import { generateChatTitle} from "./ollama.service";
-import { runOllamaAgent } from "./ollama-agent.service";
+import prisma from "../db/prisma.js";
+import { generateChatTitle} from "./ollama.service.js";
+import { runOllamaAgent } from "./ollama-agent.service.js";
 
 interface SendMessageInput {
   userId: string;

@@ -1,0 +1,15 @@
+node_modules
+dist
+.env
+
+.git
+.github
+
+*.log
+
+.vscode
+.windsurf
+.claude
+.agents
+
+warewatch2026-firebase-adminsdk-*.json

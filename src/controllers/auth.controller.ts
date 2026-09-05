@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { syncFirebaseUser } from "../services/user.service";
+import { syncFirebaseUser } from "../services/user.service.js";
 
 export async function syncUser(req: Request, res: Response) {
   try {

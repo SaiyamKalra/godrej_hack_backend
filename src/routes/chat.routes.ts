@@ -1,6 +1,6 @@
 import {Router} from "express";
-import { createChatMessage,getChatMessage,getRecentChats,deleteChat, searchChat } from "../controllers/chat.controller";
-import { authenticate } from "../middleware/auth.middleware";
+import { createChatMessage,getChatMessage,getRecentChats,deleteChat, searchChat } from "../controllers/chat.controller.js";
+import { authenticate } from "../middleware/auth.middleware.js";
 const router=Router();
 router.use(authenticate);
 router.post("/",createChatMessage);

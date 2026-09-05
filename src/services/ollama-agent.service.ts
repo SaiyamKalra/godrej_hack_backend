@@ -3,11 +3,11 @@ import ollama from "ollama";
 import {
   databaseTool,
   DatabaseQuery,
-} from "../tools/database.tool";
+} from "../tools/database.tool.js";
 
 import {
   databaseToolDefinition,
-} from "../tools/database.definition";
+} from "../tools/database.definition.js";
 
 const OLLAMA_MODEL =
   process.env.OLLAMA_MODEL || "llama3.2:latest";

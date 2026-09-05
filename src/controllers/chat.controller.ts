@@ -1,5 +1,5 @@
 import { Request,Response } from "express";
-import { sendMessage,getMessage,getRecentChatsService, searchChatServices,deleteChatService } from "../services/chat.service";
+import { sendMessage,getMessage,getRecentChatsService, searchChatServices,deleteChatService } from "../services/chat.service.js";
 
 export async function createChatMessage(
   req: Request,
