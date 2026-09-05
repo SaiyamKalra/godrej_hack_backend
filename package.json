@@ -23,6 +23,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@elastic/elasticsearch": "^9.5.1",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "cors": "^2.8.6",
@@ -30,7 +31,8 @@
     "express": "^5.2.1",
     "firebase-admin": "^14.3.0",
     "ollama": "^0.6.3",
-    "pg": "^8.23.0"
+    "pg": "^8.23.0",
+    "redis": "^6.2.1"
   },
   "allowScripts": {
     "@firebase/util@1.15.3": true,
