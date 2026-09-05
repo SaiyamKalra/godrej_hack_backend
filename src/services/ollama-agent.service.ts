@@ -338,6 +338,7 @@ export async function runOllamaAgent(
         databaseToolDefinition,
       ],
       stream: true,
+      think: false,
       options: {
         temperature: 0,
       },

@@ -9,33 +9,42 @@ interface SendMessageInput {
   onChunk?: (content: string) => void;
 }
 
+function getInitialChatTitle(date: Date = new Date()): string {
+  const dateStr = date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  const timeStr = date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+  return `Chat on ${dateStr} at ${timeStr}`;
+}
+
 export async function sendMessage({
   userId,
   chatId,
   message,
   onChunk,
 }: SendMessageInput) {
-  let chat;
+  const chat = chatId
+    ? await prisma.chat.findFirst({
+        where: {
+          chatId,
+          userId,
+        },
+      })
+    : await prisma.chat.create({
+        data: {
+          userId,
+          title: getInitialChatTitle(),
+        },
+      });
 
-  if (chatId) {
-    chat = await prisma.chat.findFirst({
-      where: {
-        chatId,
-        userId,
-      },
-    });
-
-    if (!chat) {
-      throw new Error("Chat not found");
-    }
-  } else {
-    const initialTitle=await generateChatTitle(message);
-    chat = await prisma.chat.create({
-      data: {
-        userId,
-        title: initialTitle,
-      },
-    });
+  if (!chat) {
+    throw new Error("Chat not found");
   }
 
   await prisma.message.create({
@@ -94,6 +103,35 @@ export async function sendMessage({
       updatedAt: new Date(),
     },
   });
+
+  // When the chat has more than three messages and still has the initial default title, generate the title asynchronously
+  const totalMessagesCount = await prisma.message.count({
+    where: { chatId: chat.chatId },
+  });
+
+  if (totalMessagesCount > 3 && chat.title.startsWith("Chat on ")) {
+    const targetChatId = chat.chatId;
+    const conversationSnippet = [
+      ...previousMessages,
+      { role: "ASSISTANT", content: assistantResponse },
+    ]
+      .slice(0, 4)
+      .map((msg) => `${msg.role}: ${msg.content}`)
+      .join("\n");
+
+    generateChatTitle(conversationSnippet)
+      .then(async (newTitle) => {
+        if (newTitle && !newTitle.startsWith("Chat on ")) {
+          await prisma.chat.update({
+            where: { chatId: targetChatId },
+            data: { title: newTitle },
+          });
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to asynchronously generate chat title:", err);
+      });
+  }
 
   return {
     chatId: chat.chatId,

@@ -9,13 +9,14 @@ interface OllamaGenerateResponse {
   done: boolean;
 }
 
-export async function generateChatTitle(userMessage:string): Promise<string> {
+export async function generateChatTitle(conversationSnippet: string): Promise<string> {
   try{
-    const prompt=`Summarize the following user message into a concise 3 to 5 word topic title.
+    const prompt=`Summarize the following conversation into a concise 3 to 5 word topic title.
       Do NOT use quotation marks, punctuation, or conversational filler like "Here is the title".
       Output ONLY the clean title text.
 
-      User Message: "${userMessage}"`;
+      Conversation:
+      "${conversationSnippet}"`;
 
      const res=await fetch(`${OLLAMA_BASE_URL}/api/generate`,{
       method:'POST',
@@ -26,6 +27,10 @@ export async function generateChatTitle(userMessage:string): Promise<string> {
         model: OLLAMA_MODEL,
         prompt: prompt,
         stream: false,
+        think: false,
+        options: {
+          num_predict: 20,
+        },
       }),
      });
 
@@ -40,10 +45,10 @@ export async function generateChatTitle(userMessage:string): Promise<string> {
       .replace(/^["']|["']$/g, "")
       .replace(/\.$/, "");
 
-    return title || userMessage.substring(0, 100);
+    return title || conversationSnippet.substring(0, 100);
   }
   catch(err){
     console.error("Failed to generate AI title:", err);
-    return userMessage.substring(0, 100);
+    return conversationSnippet.substring(0, 100);
   }
 }
