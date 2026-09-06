@@ -7,16 +7,19 @@ export async function authenticate(
   next: NextFunction
 ) {
   try {
+    let idToken = "";
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      idToken = authHeader.substring(7);
+    } else if (req.query.token && typeof req.query.token === "string") {
+      idToken = req.query.token;
+    } else {
       return res.status(401).json({
         error: "Authorization token is required",
         status: 0,
       });
     }
-
-    const idToken = authHeader.substring(7);
 
     const decodedToken = await firebaseAuth.verifyIdToken(idToken);
 

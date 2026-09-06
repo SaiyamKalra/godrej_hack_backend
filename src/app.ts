@@ -20,6 +20,8 @@ app.use("/api/alerts", alertRoutes);
 app.use("/api/monitoring", monitoringRoutes);
 app.use("/api/archive", archiveRoutes);
 
+app.use("/clips", express.static(process.env.CLIP_OUTPUT_DIR || "/app/clips"));
+
 app.get("/", (req, res) => {
   res.json({
     message: "Godrej backend is running",
