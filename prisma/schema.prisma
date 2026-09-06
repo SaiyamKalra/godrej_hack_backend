@@ -51,3 +51,58 @@ enum MessageRole {
   USER
   ASSISTANT
 }
+
+model Camera {
+  id        String   @id @default(uuid())
+  name      String                    // e.g. "Dock Camera 1"
+  streamUrl String                    // RTSP/MJPEG URL
+  location  String?                   // e.g. "Loading Dock A"
+  isActive  Boolean  @default(true)
+  alerts    Alert[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+model Alert {
+  id           String       @id @default(uuid())
+  cameraId     String
+  camera       Camera       @relation(fields: [cameraId], references: [id], onDelete: Cascade)
+  className    String                  // e.g. "no_helmet", "forklift_unsafe"
+  confidence   Float
+  severity     AlertSeverity @default(MEDIUM)
+  bboxX1       Float
+  bboxY1       Float
+  bboxX2       Float
+  bboxY2       Float
+  imageWidth   Int
+  imageHeight  Int
+  acknowledged Boolean      @default(false)
+  thumbnailUrl String?                 // path to snapshot at time of alert
+  archiveClip  ArchiveClip?
+  createdAt    DateTime     @default(now())
+
+  @@index([cameraId])
+  @@index([className])
+  @@index([createdAt])
+  @@index([acknowledged])
+  @@index([severity])
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model ArchiveClip {
+  id        String   @id @default(uuid())
+  alertId   String   @unique
+  alert     Alert    @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  videoPath String                    // path to the 3-sec .mp4 clip
+  duration  Float                     // duration in seconds
+  fileSize  Int                       // size in bytes
+  createdAt DateTime @default(now())
+}

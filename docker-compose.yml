@@ -7,15 +7,40 @@ services:
       - postgres
       - redis
       - elasticsearch
+      - inference
     environment:
       PORT: 8080
       DATABASE_URL: postgresql://app:password@postgres:5432/myapp
       OLLAMA_BASE_URL: http://ollama:11434
       OLLAMA_MODEL: ${OLLAMA_MODEL}
-
+      INFERENCE_SERVICE_URL: http://inference:8000
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
       FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL}
       FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY}
+      CLIP_OUTPUT_DIR: /app/clips
+    volumes:
+      - clips_data:/app/clips
+
+  inference:
+    build: ../inference_service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../best:/app/model/best:ro
+      - clips_data:/app/clips
+    environment:
+      - MODEL_PATH=model/best
+      - YOLO_CONF_THRESHOLD=0.5
+      - YOLO_IOU_THRESHOLD=0.45
+      - CLIP_OUTPUT_DIR=/app/clips
+      - BACKEND_WEBHOOK_URL=http://backend:8080/api/alerts/webhook
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
   postgres:
     image: postgres:17
@@ -56,3 +81,4 @@ services:
 
 volumes:
   postgres_data:
+  clips_data:

@@ -12,6 +12,20 @@ import {
   databaseToolDefinition,
 } from "../tools/database.definition.js";
 
+import {
+  getRecentAlertsTool,
+  getAlertStatsTool,
+  getCamerasTool,
+  getArchiveClipsTool,
+} from "../tools/warehouse.tool.js";
+
+import {
+  getRecentAlertsDefinition,
+  getAlertStatsDefinition,
+  getCamerasDefinition,
+  getArchiveClipsDefinition,
+} from "../tools/warehouse.definition.js";
+
 
 const OLLAMA_MODEL =
   process.env.OLLAMA_MODEL || "llama3.2:latest";
@@ -337,6 +351,10 @@ export async function runOllamaAgent(
       messages: agentMessages,
       tools: [
         databaseToolDefinition,
+        getRecentAlertsDefinition,
+        getAlertStatsDefinition,
+        getCamerasDefinition,
+        getArchiveClipsDefinition,
       ],
       stream: true,
       think: false,
@@ -462,8 +480,11 @@ export async function runOllamaAgent(
       );
 
       if (
-        toolName !==
-        "database_query"
+        toolName !== "database_query" &&
+        toolName !== "get_recent_alerts" &&
+        toolName !== "get_alert_stats" &&
+        toolName !== "get_cameras" &&
+        toolName !== "get_archive_clips"
       ) {
 
         console.log(
@@ -517,11 +538,22 @@ export async function runOllamaAgent(
           )
         );
 
-        const result =
-          await databaseTool(
+        let result;
+
+        if (toolName === "database_query") {
+          result = await databaseTool(
             userId,
             toolArguments as DatabaseQuery
           );
+        } else if (toolName === "get_recent_alerts") {
+          result = await getRecentAlertsTool(toolArguments);
+        } else if (toolName === "get_alert_stats") {
+          result = await getAlertStatsTool();
+        } else if (toolName === "get_cameras") {
+          result = await getCamerasTool();
+        } else if (toolName === "get_archive_clips") {
+          result = await getArchiveClipsTool(toolArguments);
+        }
 
         console.log(
           "Database result:",
