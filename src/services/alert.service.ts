@@ -1,7 +1,17 @@
 import prisma from "../db/prisma.js";
 
 export const createAlertFromWebhook = async (data: any) => {
-  const { cameraId, className, confidence, severity, bbox, imageWidth, imageHeight, thumbnailUrl, clipPath, clipDuration, clipSize } = data;
+  const cameraId = data.cameraId || data.camera_id;
+  const className = data.className || data.class_name;
+  const confidence = data.confidence;
+  const severity = data.severity;
+  const bbox = data.bbox;
+  const imageWidth = data.imageWidth || data.image_width;
+  const imageHeight = data.imageHeight || data.image_height;
+  const thumbnailUrl = data.thumbnailUrl || data.thumbnail_path;
+  const clipPath = data.clipPath || data.clip_path;
+  const clipDuration = data.clipDuration || data.clip_duration;
+  const clipSize = data.clipSize || data.clip_size;
   
   return prisma.alert.create({
     data: {
@@ -52,9 +62,7 @@ export const getAlerts = async (filters: any) => {
       skip: skip ? parseInt(skip) : 0,
       take: take ? parseInt(take) : 50,
       include: {
-        camera: {
-          select: { name: true, location: true }
-        },
+        camera: true,
         archiveClip: true
       }
     }),

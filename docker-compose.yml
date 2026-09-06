@@ -26,10 +26,10 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ../best:/app/model/best:ro
+      - ../best.pt:/app/model/best.pt:ro
       - clips_data:/app/clips
     environment:
-      - MODEL_PATH=model/best
+      - MODEL_PATH=model/best.pt
       - YOLO_CONF_THRESHOLD=0.5
       - YOLO_IOU_THRESHOLD=0.45
       - CLIP_OUTPUT_DIR=/app/clips

@@ -9,6 +9,20 @@ export const createCamera = async (req: Request, res: Response) => {
       return;
     }
     const camera = await cameraService.createCamera(name, streamUrl, location);
+    
+    // Register with inference service
+    const INFERENCE_SERVICE_URL = process.env.INFERENCE_SERVICE_URL || "http://localhost:8000";
+    try {
+      const qs = new URLSearchParams({
+        camera_id: camera.id,
+        stream_url: camera.streamUrl,
+        camera_name: camera.name
+      }).toString();
+      await fetch(`${INFERENCE_SERVICE_URL}/cameras?${qs}`, { method: 'POST' });
+    } catch (e) {
+      console.error('Failed to register camera with inference service:', e);
+    }
+
     res.json({ camera, status: 1 });
   } catch (error: any) {
     res.status(500).json({ error: error.message, status: 0 });
@@ -49,6 +63,15 @@ export const updateCamera = async (req: Request, res: Response) => {
 export const deleteCamera = async (req: Request, res: Response) => {
   try {
     await cameraService.deleteCamera(req.params.id as string);
+    
+    // Unregister with inference service
+    const INFERENCE_SERVICE_URL = process.env.INFERENCE_SERVICE_URL || "http://localhost:8000";
+    try {
+      await fetch(`${INFERENCE_SERVICE_URL}/cameras/${req.params.id}`, { method: 'DELETE' });
+    } catch (e) {
+      console.error('Failed to unregister camera from inference service:', e);
+    }
+
     res.json({ message: "Camera deleted", status: 1 });
   } catch (error: any) {
     res.status(500).json({ error: error.message, status: 0 });
