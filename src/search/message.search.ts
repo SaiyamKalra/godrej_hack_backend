@@ -1,14 +1,30 @@
 import elasticsearch from "./elastic.search.js";
 
 export async function createMessageIndex() {
-  const exists = await elasticsearch.indices.exists({
-    index: "messages",
-  });
-
-  if (!exists) {
-    await elasticsearch.indices.create({
+  if (!process.env.ELASTIC_SEARCH_URL) return;
+  try {
+    const exists = await elasticsearch.indices.exists({
       index: "messages",
     });
+
+    if (!exists) {
+      await elasticsearch.indices.create({
+        index: "messages",
+        mappings: {
+          properties: {
+            messageId: { type: "keyword" },
+            chatId: { type: "keyword" },
+            userId: { type: "keyword" },
+            title: { type: "text" },
+            role: { type: "keyword" },
+            content: { type: "text" },
+            createdAt: { type: "date" },
+          },
+        },
+      });
+    }
+  } catch (err) {
+    console.warn("Failed to create/check Elasticsearch index:", err);
   }
 }
 
@@ -21,75 +37,111 @@ export async function indexMessage(message: {
   content: string;
   createdAt: Date;
 }) {
-  await elasticsearch.index({
-    index: "messages",
-    id: message.messageId,
-    document: message,
-  });
+  if (!process.env.ELASTIC_SEARCH_URL) return;
+  try {
+    await elasticsearch.index({
+      index: "messages",
+      id: message.messageId,
+      document: message,
+    });
+  } catch (err) {
+    console.warn("Failed to index message in Elasticsearch:", err);
+  }
 }
 
 export async function searchMessages(
   userId: string,
   query: string
 ) {
-  const result = await elasticsearch.search({
-    index: "messages",
+  if (!process.env.ELASTIC_SEARCH_URL) return [];
+  try {
+    const result = await elasticsearch.search({
+      index: "messages",
+      size: 20,
 
-    query: {
-      bool: {
-        must: {
-          multi_match: {
-            query,
-            fields: ["title", "content"],
-            fuzziness: "AUTO",
+      query: {
+        bool: {
+          must: {
+            bool: {
+              should: [
+                {
+                  // Fuzzy matching — handles typos like "waerhouse" → "warehouse"
+                  multi_match: {
+                    query,
+                    fields: ["title^2", "content"],
+                    fuzziness: "AUTO",
+                    prefix_length: 1,
+                  },
+                },
+                {
+                  // Prefix matching — handles partial words like "war" → "warehouse"
+                  multi_match: {
+                    query,
+                    fields: ["title^2", "content"],
+                    type: "phrase_prefix",
+                  },
+                },
+              ],
+              minimum_should_match: 1,
+            },
           },
-        },
 
-        filter: {
-          term: {
-            userId,
+          filter: {
+            term: {
+              userId,
+            },
           },
         },
       },
-    },
 
-    collapse: {
-      field: "chatId",
-    },
-
-    sort: [
-      {
-        createdAt: {
-          order: "desc",
-        },
+      collapse: {
+        field: "chatId",
       },
-    ],
-  });
 
-  return result.hits.hits.map((hit) => hit._source);
+      // Sort by relevance first, then by recency
+      sort: [
+        "_score",
+        {
+          createdAt: {
+            order: "desc",
+          },
+        },
+      ],
+    });
+
+    return result.hits.hits.map((hit) => hit._source);
+  } catch (err) {
+    console.warn("Elasticsearch searchMessages error:", err);
+    return [];
+  }
 }
 
 export async function deleteMessagesByChat(
   chatId: string,
   userId: string
 ) {
-  await elasticsearch.deleteByQuery({
-    index: "messages",
-    query: {
-      bool: {
-        filter: [
-          {
-            term: {
-              chatId,
+  if (!process.env.ELASTIC_SEARCH_URL) return;
+  try {
+    await elasticsearch.deleteByQuery({
+      index: "messages",
+      query: {
+        bool: {
+          filter: [
+            {
+              term: {
+                chatId,
+              },
             },
-          },
-          {
-            term: {
-              userId,
+            {
+              term: {
+                userId,
+              },
             },
-          },
-        ],
+          ],
+        },
       },
-    },
-  });
+    });
+  } catch (err) {
+    console.warn("Elasticsearch deleteMessagesByChat error:", err);
+  }
 }

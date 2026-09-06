@@ -115,15 +115,22 @@ export async function getChatMessage(req:Request,res:Response){
             });
         }
 
-        const parsedLimit=typeof limit ==="string" ? Number.parseInt(limit,10):20;
-        const parsedCursor = cursor
-          ? JSON.parse(cursor as string)
-          : undefined;
+        const parsedLimit = typeof limit === "string" ? Number.parseInt(limit, 10) : 20;
+
+        if (
+            !Number.isInteger(parsedLimit) ||
+            parsedLimit < 1 ||
+            parsedLimit > 100
+        ) {
+            return res.status(400).json({
+                error: "limit must be between 1 and 100",
+            });
+        }
 
         const result = await getMessage({
             userId,
             chatId,
-            cursor:parsedCursor,
+            cursor: typeof cursor === "string" ? cursor : undefined,
             limit: parsedLimit,
         });
 
@@ -156,7 +163,7 @@ export async function getRecentChats(
 
 
         const chats =
-            await getRecentChatsService({userId});
+            await getRecentChatsService(userId);
 
 
         return res.status(200).json({

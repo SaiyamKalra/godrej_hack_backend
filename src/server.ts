@@ -9,8 +9,27 @@ const PORT = process.env.PORT || 8080;
 
 async function startServer(){
   try{
-    await connectRedis();
-    await createMessageIndex();
+    try {
+      if (process.env.REDIS_URL) {
+        await connectRedis();
+        console.log("Connected to Redis");
+      } else {
+        console.log("REDIS_URL not configured, running without Redis");
+      }
+    } catch (redisErr: any) {
+      console.warn("Failed to connect to Redis, continuing without Redis cache:", redisErr?.message || redisErr);
+    }
+
+    try {
+      if (process.env.ELASTIC_SEARCH_URL) {
+        await createMessageIndex();
+        console.log("Elasticsearch message index verified");
+      } else {
+        console.log("ELASTIC_SEARCH_URL not configured, running without Elasticsearch");
+      }
+    } catch (esErr) {
+      console.warn("Failed to initialize Elasticsearch, continuing without Elasticsearch:", esErr);
+    }
     
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
