@@ -104,8 +104,10 @@ services:
           sleep 1;
         done;
         echo 'Ollama is ready. Pulling model ${OLLAMA_MODEL}...';
-        curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"${OLLAMA_MODEL}\"}';
-        echo 'Model pulled successfully.';
+        curl -s -X POST http://ollama:11434/api/pull -d '{\"name\": \"${OLLAMA_MODEL}\"}';
+        echo 'Model pulled. Loading model into memory...';
+        curl -s -X POST http://ollama:11434/api/generate -d '{\"model\": \"${OLLAMA_MODEL}\", \"keep_alive\": -1}';
+        echo 'Model loaded successfully.';
       "
 
 volumes:
