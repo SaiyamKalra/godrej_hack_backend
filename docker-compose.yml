@@ -4,10 +4,14 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - postgres
-      - redis
-      - elasticsearch
-      - inference
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      elasticsearch:
+        condition: service_started
+      inference:
+        condition: service_started
     environment:
       PORT: 8080
       DATABASE_URL: postgresql://app:password@postgres:5432/myapp
@@ -50,6 +54,11 @@ services:
       POSTGRES_DB: myapp
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d myapp"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:8
@@ -61,6 +70,8 @@ services:
       - xpack.security.enabled=false
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
     mem_limit: 1g
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
 
   ollama:
     image: ollama/ollama
@@ -82,3 +93,5 @@ services:
 volumes:
   postgres_data:
   clips_data:
+  es_data:
+  ollama_models:
