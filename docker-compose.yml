@@ -12,6 +12,8 @@ services:
         condition: service_started
       inference:
         condition: service_started
+      ollama-pull:
+        condition: service_completed_successfully
     environment:
       PORT: 8080
       DATABASE_URL: postgresql://app:password@postgres:5432/myapp
@@ -89,6 +91,22 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+
+  ollama-pull:
+    image: curlimages/curl:latest
+    depends_on:
+      ollama:
+        condition: service_started
+    command: >
+      sh -c "
+        while ! curl -s --max-time 2 http://ollama:11434/api/tags > /dev/null; do
+          echo 'Waiting for Ollama to be ready...';
+          sleep 1;
+        done;
+        echo 'Ollama is ready. Pulling model ${OLLAMA_MODEL}...';
+        curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"${OLLAMA_MODEL}\"}';
+        echo 'Model pulled successfully.';
+      "
 
 volumes:
   postgres_data:

@@ -185,7 +185,6 @@ After a tool call:
 - Do not add unsupported conclusions.
 - If calculations are required and the returned data is sufficient,
   perform only calculations that are directly supported by that data.
-- If you must output a tool call as raw JSON, the "name" field MUST be exactly "database_query". Do not use the description as the name.
 
 ==================================================
 6. WAREHOUSE INTELLIGENCE
@@ -321,7 +320,8 @@ warehouse operations. How can I help you with your warehouse data today?"
 - NEVER narrate your internal processes (e.g., Do not say "I am checking the database", "I have retrieved your information", or "According to my tools").
 - NEVER announce the user's name or email back to them just because you retrieved it. Incorporate context seamlessly.
 - Keep responses concise unless the user requests more detail.
-- Use bullet points for lists and tables for structured data.
+- NEVER use markdown tables. Format all structured data as bulleted lists, as tables do not render well on mobile screens.
+- NEVER use emojis in your responses. This is a professional enterprise setting.
 - Do not say "Here is your answer", "Here is your data", or "In conclusion".
 - Do not expose internal reasoning or chain-of-thought.
 `;
@@ -407,17 +407,25 @@ export async function runOllamaAgent(
       try {
         const parsed = JSON.parse(streamedContent.trim());
 
-        const isDatabaseQuery = 
-          parsed?.name === "database_query" || 
+        const validTools = [
+          "database_query",
+          "get_recent_alerts",
+          "get_alert_stats",
+          "get_cameras",
+          "get_archive_clips"
+        ];
+
+        const isToolCall = 
+          validTools.includes(parsed?.name) || 
           (typeof parsed?.name === "string" && parsed.name.includes("Retrieve information"));
 
-        if (isDatabaseQuery && parsed?.parameters) {
+        if (isToolCall && parsed?.parameters !== undefined) {
           console.log("Detected tool call inside streamed content:");
           console.log(JSON.stringify(parsed, null, 2));
 
           toolCalls.push({
             function: {
-              name: "database_query",
+              name: parsed?.name?.includes("Retrieve information") ? "database_query" : parsed.name,
               arguments: parsed.parameters,
             },
           });

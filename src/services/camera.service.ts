@@ -8,6 +8,7 @@ export const createCamera = async (name: string, streamUrl: string, location?: s
 
 export const getCameras = async () => {
   return prisma.camera.findMany({
+    where: { isActive: true },
     orderBy: { createdAt: "desc" },
   });
 };
@@ -26,7 +27,14 @@ export const updateCamera = async (id: string, data: { name?: string; streamUrl?
 };
 
 export const deleteCamera = async (id: string) => {
-  return prisma.camera.delete({
-    where: { id },
-  });
+  const camera = await getCameraById(id);
+  if (camera) {
+    return prisma.camera.update({
+      where: { id },
+      data: { 
+        isActive: false,
+        name: camera.name.endsWith(' (Deleted)') ? camera.name : `${camera.name} (Deleted)`
+      },
+    });
+  }
 };

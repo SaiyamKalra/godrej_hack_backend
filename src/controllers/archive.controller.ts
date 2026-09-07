@@ -4,11 +4,21 @@ import prisma from "../db/prisma.js";
 
 export const getArchiveClips = async (req: Request, res: Response) => {
   try {
-    const { skip, take, cameraId } = req.query;
+    const { skip, take, cameraId, date } = req.query;
     
     const where: any = {};
     if (cameraId) {
       where.alert = { cameraId };
+    }
+    if (date) {
+      // date is expected in YYYY-MM-DD format
+      const startDate = new Date(date as string);
+      const endDate = new Date(date as string);
+      endDate.setDate(endDate.getDate() + 1);
+      where.createdAt = {
+        gte: startDate,
+        lt: endDate
+      };
     }
 
     const [clips, total] = await Promise.all([

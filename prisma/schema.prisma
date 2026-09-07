@@ -67,8 +67,8 @@ model Camera {
 
 model Alert {
   id           String       @id @default(uuid())
-  cameraId     String
-  camera       Camera       @relation(fields: [cameraId], references: [id], onDelete: Cascade)
+  cameraId     String?
+  camera       Camera?       @relation(fields: [cameraId], references: [id], onDelete: SetNull)
   className    String                  // e.g. "no_helmet", "forklift_unsafe"
   confidence   Float
   severity     AlertSeverity @default(MEDIUM)
