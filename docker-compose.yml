@@ -24,6 +24,8 @@ services:
       FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL}
       FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY}
       CLIP_OUTPUT_DIR: /app/clips
+      REDIS_URL: redis://redis:6379
+      ELASTIC_SEARCH_URL: http://elasticsearch:9200
     volumes:
       - clips_data:/app/clips
 
