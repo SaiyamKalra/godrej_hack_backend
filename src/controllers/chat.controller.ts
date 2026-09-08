@@ -30,6 +30,12 @@ export async function createChatMessage(
 
     res.flushHeaders();
 
+    // Ensure user exists in database
+    const email = req.user!.email || "user@example.com";
+    const name = req.user!.name || "User";
+    const { syncFirebaseUser } = await import("../services/user.service.js");
+    await syncFirebaseUser(userId, email, name);
+
     const result = await sendMessage({
       userId,
       chatId,

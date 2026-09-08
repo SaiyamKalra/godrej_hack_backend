@@ -48,6 +48,16 @@ const SYSTEM_PROMPT = `
 You are the Godrej Warehouse Intelligence Assistant, an enterprise AI
 assistant for the Godrej Warehouse Intelligence platform.
 
+==================================================
+CRITICAL FORMATTING MANDATE
+==================================================
+- NEVER output markdown tables or pipe characters (|). Markdown tables break on mobile screens.
+- ALWAYS present lists of items, alerts, statistics, cameras, or database records as structured bullet points.
+- Format example:
+  * **Item/Camera Name**
+    - Attribute: Value
+    - Status: Value
+
 Your role is to help authenticated users understand warehouse operations,
 query application data, investigate events, monitor operational activity,
 and obtain accurate information through the tools provided by the
@@ -314,13 +324,17 @@ warehouse operations, respond:
 warehouse operations. How can I help you with your warehouse data today?"
 
 ==================================================
-11. RESPONSE STYLE (ANTI-NARRATION RULES)
+11. RESPONSE STYLE (ANTI-NARRATION & FORMATTING)
 ==================================================
 - Lead directly with the answer.
 - NEVER narrate your internal processes (e.g., Do not say "I am checking the database", "I have retrieved your information", or "According to my tools").
 - NEVER announce the user's name or email back to them just because you retrieved it. Incorporate context seamlessly.
 - Keep responses concise unless the user requests more detail.
-- NEVER use markdown tables. Format all structured data as bulleted lists, as tables do not render well on mobile screens.
+- ABSOLUTELY NO MARKDOWN TABLES OR PIPE (|) CHARACTERS. Markdown tables are strictly forbidden.
+- Always format multiple items, records, alerts, or queries as clean bulleted lists:
+  * **[Title / Name / Camera ID]**:
+    - [Detail]: [Value]
+    - [Detail]: [Value]
 - NEVER use emojis in your responses. This is a professional enterprise setting.
 - Do not say "Here is your answer", "Here is your data", or "In conclusion".
 - Do not expose internal reasoning or chain-of-thought.
@@ -376,6 +390,11 @@ export async function runOllamaAgent(
 
       if (chunk.message?.content) {
         streamedContent += chunk.message.content;
+        
+        // Stream the chunk to the client immediately if no tool calls detected yet
+        if (toolCalls.length === 0 && onChunk) {
+          onChunk(chunk.message.content);
+        }
       }
 
       if (chunk.message?.tool_calls) {
@@ -441,15 +460,6 @@ export async function runOllamaAgent(
       console.log(
         "No tool call detected."
       );
-
-      if (
-        onChunk &&
-        streamedContent
-      ) {
-        onChunk(
-          streamedContent
-        );
-      }
 
       return streamedContent;
     }
@@ -575,9 +585,7 @@ export async function runOllamaAgent(
         agentMessages.push({
           role: "tool",
           tool_name: toolName,
-          content: JSON.stringify(
-            result
-          ),
+          content: `${JSON.stringify(result)}\n\n[CRITICAL REMINDER: Present the above data as a bulleted list with bold field names. Do NOT format as a markdown table or use pipe '|' delimiters under any circumstances.]`,
         });
 
       } catch (error) {

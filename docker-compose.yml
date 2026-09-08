@@ -42,6 +42,8 @@ services:
       - YOLO_IOU_THRESHOLD=0.45
       - CLIP_OUTPUT_DIR=/app/clips
       - BACKEND_WEBHOOK_URL=http://backend:8080/api/alerts/webhook
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     deploy:
       resources:
         reservations:
